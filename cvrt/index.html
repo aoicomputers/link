@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aigrafi G-Drive Link Converter</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+    .container {
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+      color: #bbb;
+      transition: color 0.3s;
+    }
+    label.green {
+      color: #4caf50;
+    }
+    input {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      border: 2px solid #bbb;
+      border-radius: 5px;
+      background-color: #1e1e1e;
+      color: #fff;
+      outline: none;
+    }
+    input:focus {
+      border-color: #4caf50;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 0.5rem;
+      background-color: #4caf50;
+      color: #fff;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    button:active {
+      transform: scale(0.95);
+    }
+    iframe {
+      border: none;
+      width: 100%;
+      height: 150px;
+      background-color: #1e1e1e;
+      margin-top: 1rem;
+      color: #fff;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Aigrafi G-Drive Link Converter</h1>
+    <label id="input-label" for="link-input">Masukkan Link</label>
+    <input type="text" id="link-input" placeholder="Masukkan link file Google Drive di sini">
+    <div>
+      <button id="paste-clipboard">Paste Clipboard</button>
+      <button id="convert-button">Konversi</button>
+    </div>
+    <iframe id="message-box"></iframe>
+  </div>
+
+  <script>
+    const input = document.getElementById('link-input');
+    const pasteClipboardButton = document.getElementById('paste-clipboard');
+    const convertButton = document.getElementById('convert-button');
+    const messageBox = document.getElementById('message-box');
+    const inputLabel = document.getElementById('input-label');
+
+    // Focus input on load
+    window.onload = () => input.focus();
+
+    // Paste clipboard functionality
+    pasteClipboardButton.addEventListener('click', async () => {
+      if (pasteClipboardButton.innerText === 'Clear') {
+        resetForm();
+      } else {
+        try {
+          const text = await navigator.clipboard.readText();
+          input.value = text;
+          input.focus();
+        } catch (err) {
+          alert('Gagal membaca clipboard: ' + err);
+        }
+      }
+    });
+
+    // Convert functionality
+    convertButton.addEventListener('click', () => {
+      if (!input.value.trim()) {
+        showMessageBox('Masukkan link terlebih dahulu!');
+        return;
+      }
+
+      if (convertButton.innerText === 'Konversi') {
+        const convertedLink = convertToDirectLink(input.value.trim());
+        input.value = convertedLink;
+        input.select();
+        inputLabel.innerText = 'Hasil Konversi';
+        inputLabel.classList.add('green');
+        convertButton.innerText = 'Copy Hasil Konversi';
+        pasteClipboardButton.innerText = 'Clear';
+      } else {
+        navigator.clipboard.writeText(input.value).then(() => {
+          alert('Hasil konversi berhasil disalin ke clipboard!');
+        });
+      }
+    });
+
+    // Reset form to initial state
+    function resetForm() {
+      input.value = '';
+      inputLabel.innerText = 'Masukkan Link';
+      inputLabel.classList.remove('green');
+      convertButton.innerText = 'Konversi';
+      pasteClipboardButton.innerText = 'Paste Clipboard';
+      input.focus();
+    }
+
+    // Show message box
+    function showMessageBox(message) {
+      messageBox.style.display = 'block';
+      messageBox.contentDocument.body.innerHTML = `<div style="color:white; background:#121212; font-family:Arial; padding:20px;">${message}<br><button onclick="parent.resetForm(); parent.messageBox.style.display='none';">OK</button></div>`;
+    }
+
+    // Convert Google Drive link to direct download link
+    function convertToDirectLink(link) {
+      const match = link.match(/https:\/\/drive\.google\.com\/file\/d\/([\w-]+)/);
+      if (match && match[1]) {
+        return `https://drive.google.com/uc?export=download&id=${match[1]}`;
+      }
+      alert('Link tidak valid!');
+      return link;
+    }
+  </script>
+</body>
+</html>
